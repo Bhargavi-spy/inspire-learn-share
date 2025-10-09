@@ -1,151 +1,212 @@
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { School, Users, GraduationCap, ArrowRight } from "lucide-react";
+import { Menu } from "lucide-react";
 
 const Index = () => {
   const navigate = useNavigate();
+  const [showPopup, setShowPopup] = useState(true);
+  const [showMainContent, setShowMainContent] = useState(false);
+  const [showMenu, setShowMenu] = useState(false);
+
+  const selectRole = (role: 'citizen' | 'school' | 'upload') => {
+    setShowPopup(false);
+    
+    if (role === 'citizen') {
+      setShowMainContent(true);
+    } else if (role === 'school') {
+      navigate("/auth?role=student");
+    } else if (role === 'upload') {
+      navigate("/auth?role=school");
+    }
+  };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-primary/5 via-background to-secondary/5">
-      {/* Hero Section */}
-      <section className="container mx-auto px-4 py-20 text-center">
-        <div className="mb-8 inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 text-primary text-sm font-medium">
-          🎓 Real-time Learning Platform
-        </div>
-        
-        <h1 className="text-5xl md:text-6xl font-bold mb-6 bg-gradient-to-r from-primary to-primary/60 bg-clip-text text-transparent">
-          Bridging Generations
-        </h1>
-        
-        <p className="text-xl md:text-2xl text-muted-foreground max-w-3xl mx-auto mb-12">
-          Connecting experienced seniors with eager students through schools for meaningful knowledge transfer
-        </p>
-
-        <Button 
-          size="lg" 
-          className="text-lg px-8 shadow-elevated"
-          onClick={() => navigate("/auth")}
-        >
-          Get Started Today
-          <ArrowRight className="ml-2 h-5 w-5" />
-        </Button>
-      </section>
-
-      {/* Three Portals */}
-      <section className="container mx-auto px-4 py-16">
-        <div className="grid gap-6 md:grid-cols-3 max-w-6xl mx-auto">
-          <Card className="shadow-elevated hover:shadow-xl transition-all duration-300 hover:-translate-y-1">
-            <CardHeader className="text-center">
-              <div className="mb-4 flex justify-center">
-                <div className="p-4 rounded-full bg-primary/10">
-                  <School className="h-8 w-8 text-primary" />
-                </div>
-              </div>
-              <CardTitle className="text-2xl">Schools</CardTitle>
-              <CardDescription className="text-base">
-                Schedule sessions with experienced seniors for your students
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <Button 
-                className="w-full" 
-                variant="outline"
-                onClick={() => navigate("/auth?role=school")}
-              >
-                Join as School
-              </Button>
-            </CardContent>
-          </Card>
-
-          <Card className="shadow-elevated hover:shadow-xl transition-all duration-300 hover:-translate-y-1">
-            <CardHeader className="text-center">
-              <div className="mb-4 flex justify-center">
-                <div className="p-4 rounded-full bg-primary/10">
-                  <Users className="h-8 w-8 text-primary" />
-                </div>
-              </div>
-              <CardTitle className="text-2xl">Seniors</CardTitle>
-              <CardDescription className="text-base">
-                Share your wisdom and teach the next generation
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <Button 
-                className="w-full" 
-                variant="outline"
-                onClick={() => navigate("/auth?role=senior")}
-              >
-                Join as Senior
-              </Button>
-            </CardContent>
-          </Card>
-
-          <Card className="shadow-elevated hover:shadow-xl transition-all duration-300 hover:-translate-y-1">
-            <CardHeader className="text-center">
-              <div className="mb-4 flex justify-center">
-                <div className="p-4 rounded-full bg-primary/10">
-                  <GraduationCap className="h-8 w-8 text-primary" />
-                </div>
-              </div>
-              <CardTitle className="text-2xl">Students</CardTitle>
-              <CardDescription className="text-base">
-                Learn from experienced professionals and seniors
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <Button 
-                className="w-full"
-                onClick={() => navigate("/auth?role=student")}
-              >
-                Join as Student
-              </Button>
-            </CardContent>
-          </Card>
-        </div>
-      </section>
-
-      {/* Stats Section */}
-      <section className="container mx-auto px-4 py-16">
-        <div className="grid gap-8 md:grid-cols-4 max-w-6xl mx-auto text-center">
-          <div>
-            <div className="text-4xl font-bold text-primary mb-2">1000+</div>
-            <div className="text-muted-foreground">Active Seniors</div>
-          </div>
-          <div>
-            <div className="text-4xl font-bold text-primary mb-2">50+</div>
-            <div className="text-muted-foreground">Partner Schools</div>
-          </div>
-          <div>
-            <div className="text-4xl font-bold text-primary mb-2">10,000+</div>
-            <div className="text-muted-foreground">Students</div>
-          </div>
-          <div>
-            <div className="text-4xl font-bold text-primary mb-2">95%</div>
-            <div className="text-muted-foreground">Satisfaction Rate</div>
+    <div className="min-h-screen" style={{ fontFamily: "'Segoe UI', sans-serif", background: '#f0f2f5' }}>
+      {/* Navigation Bar */}
+      <nav style={{ backgroundColor: '#0d1b2a', padding: '15px 0', boxShadow: '0 2px 10px rgba(0,0,0,0.1)' }}>
+        <div style={{ maxWidth: '1200px', margin: '0 auto', display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '0 20px' }}>
+          <a href="#" style={{ color: 'white', fontSize: '24px', fontWeight: 'bold', textDecoration: 'none' }}>
+            Legacy<span style={{ color: '#778da9' }}>#Genα</span>
+          </a>
+          <div style={{ display: 'flex', gap: '30px' }}>
+            <a href="#" style={{ color: 'white', textDecoration: 'none', fontSize: '16px', transition: 'color 0.3s' }}>About</a>
+            <a href="#" style={{ color: 'white', textDecoration: 'none', fontSize: '16px', transition: 'color 0.3s' }}>Services</a>
+            <a href="#" style={{ color: 'white', textDecoration: 'none', fontSize: '16px', transition: 'color 0.3s' }}>Help</a>
           </div>
         </div>
-      </section>
+      </nav>
 
-      {/* CTA Section */}
-      <section className="container mx-auto px-4 py-20 text-center">
-        <Card className="max-w-3xl mx-auto shadow-elevated bg-gradient-to-br from-primary/5 to-primary/10">
-          <CardContent className="py-12">
-            <h2 className="text-3xl font-bold mb-4">Ready to Make a Difference?</h2>
-            <p className="text-xl text-muted-foreground mb-8">
-              Join our community and be part of this transformative journey
+      {/* Header with buttons and burger menu */}
+      <header style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', backgroundColor: '#1b263b', color: 'white', padding: '15px 20px' }}>
+        <div style={{ display: 'flex', gap: '10px' }}>
+          <Button 
+            onClick={() => navigate("/auth")}
+            style={{ 
+              backgroundColor: '#e0e1dd', 
+              color: '#1b263b',
+              padding: '12px 20px',
+              fontWeight: '600',
+              textTransform: 'uppercase',
+              letterSpacing: '0.5px'
+            }}
+          >
+            Sign In
+          </Button>
+          <Button 
+            onClick={() => navigate("/auth")}
+            style={{ 
+              backgroundColor: '#415a77', 
+              color: 'white',
+              padding: '12px 20px',
+              fontWeight: '600',
+              textTransform: 'uppercase',
+              letterSpacing: '0.5px'
+            }}
+          >
+            Sign Up
+          </Button>
+        </div>
+        <Menu 
+          style={{ fontSize: '24px', cursor: 'pointer' }} 
+          onClick={() => setShowMenu(!showMenu)}
+        />
+      </header>
+
+      {/* Popup for Role Selection */}
+      {showPopup && (
+        <div style={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          width: '100%',
+          height: '100%',
+          background: 'rgba(0,0,0,0.7) url("https://media.edexlive.com/edexlive%2Fimport%2F2019%2F3%2F7%2Foriginal%2Fvijedex20.jpg?w=1024&auto=format%2Ccompress&fit=max") center/cover no-repeat',
+          display: 'flex',
+          justifyContent: 'center',
+          alignItems: 'center',
+          zIndex: 1000
+        }}>
+          <div style={{
+            background: 'rgba(255, 255, 255, 0.95)',
+            padding: '30px 50px',
+            textAlign: 'center',
+            borderRadius: '8px',
+            maxWidth: '500px'
+          }}>
+            <nav style={{ backgroundColor: '#0d1b2a', padding: '15px 0', boxShadow: '0 2px 10px rgba(0,0,0,0.1)', marginBottom: '20px', borderRadius: '8px' }}>
+              <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
+                <a href="#" style={{ color: 'white', fontSize: '24px', fontWeight: 'bold', textDecoration: 'none' }}>
+                  Legacy<span style={{ color: '#778da9' }}>#Genα</span>
+                </a>
+              </div>
+            </nav>
+            <h2 style={{ marginBottom: '20px', color: '#1b263b', fontSize: '28px' }}>Welcome to Legacy Gen Alpha</h2>
+            <p style={{ fontStyle: 'italic', color: '#415a77', textAlign: 'center', margin: '20px 0', fontSize: '18px', lineHeight: '1.6' }}>
+              <span style={{ fontSize: '24px', color: '#778da9' }}>"</span>
+              The wisdom of age meets the curiosity of youth - bridging generations through shared knowledge.
+              <span style={{ fontSize: '24px', color: '#778da9' }}>"</span>
             </p>
-            <Button 
-              size="lg" 
-              className="text-lg px-8"
-              onClick={() => navigate("/auth")}
-            >
-              Get Started Today
-              <ArrowRight className="ml-2 h-5 w-5" />
-            </Button>
-          </CardContent>
-        </Card>
-      </section>
+            <p style={{ marginBottom: '20px' }}>Initiative taken by <b>Vasavya Mahila Mandali (VMM)</b> in collaboration with <b>NTR District collector Dr.G.Lakshmisha I.A.S</b></p>
+            
+            <div style={{ display: 'flex', gap: '15px', justifyContent: 'center', flexWrap: 'wrap' }}>
+              <Button
+                onClick={() => selectRole('citizen')}
+                style={{
+                  padding: '15px 30px',
+                  fontSize: '16px',
+                  backgroundColor: '#e0e1dd',
+                  color: '#1b263b',
+                  fontWeight: '600'
+                }}
+              >
+                Create Memories (citizen)
+              </Button>
+              <Button
+                onClick={() => selectRole('school')}
+                style={{
+                  padding: '15px 30px',
+                  fontSize: '16px',
+                  backgroundColor: '#e0e1dd',
+                  color: '#1b263b',
+                  fontWeight: '600'
+                }}
+              >
+                Explore Memories (kids)
+              </Button>
+              <Button
+                onClick={() => selectRole('upload')}
+                style={{
+                  padding: '15px 30px',
+                  fontSize: '16px',
+                  backgroundColor: '#415a77',
+                  color: 'white',
+                  fontWeight: '600'
+                }}
+              >
+                School Portal
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Main Citizen Homepage */}
+      {showMainContent && (
+        <div>
+          <div style={{ padding: '40px 20px', background: 'white', margin: '20px auto', maxWidth: '1000px', boxShadow: '0 0 10px rgba(0,0,0,0.1)', borderRadius: '8px' }}>
+            <h2 style={{ color: '#1b263b' }}>Preserve Knowledge</h2>
+            <p>Capture and share decades of professional experience, life skills, and cultural knowledge with the next generation.</p>
+          </div>
+
+          <div style={{ padding: '40px 20px', background: 'white', margin: '20px auto', maxWidth: '1000px', boxShadow: '0 0 10px rgba(0,0,0,0.1)', borderRadius: '8px' }}>
+            <h2 style={{ color: '#1b263b' }}>Active Aging</h2>
+            <p>Provide senior citizens with opportunities to stay engaged, share their expertise, and make a lasting impact.</p>
+          </div>
+
+          <div style={{ padding: '40px 20px', background: 'white', margin: '20px auto', maxWidth: '1000px', boxShadow: '0 0 10px rgba(0,0,0,0.1)', borderRadius: '8px' }}>
+            <h2 style={{ color: '#1b263b' }}>Benefits for Everyone</h2>
+            <div style={{ display: 'flex', justifyContent: 'space-between', flexWrap: 'wrap', gap: '30px' }}>
+              <div style={{ flex: 1, minWidth: '280px' }}>
+                <h3 style={{ color: '#1b263b' }}>For Senior Citizens</h3>
+                <ul style={{ paddingLeft: '20px' }}>
+                  <li>Stay mentally active and engaged</li>
+                  <li>Share valuable life experience and expertise</li>
+                  <li>Earn rewards for every minute of teaching (0.75 points/minute)</li>
+                  <li>Build meaningful connections with younger generations</li>
+                  <li>Make a lasting impact on education</li>
+                </ul>
+              </div>
+              <div style={{ flex: 1, minWidth: '280px' }}>
+                <h3 style={{ color: '#1b263b' }}>For Schools</h3>
+                <ul style={{ paddingLeft: '20px' }}>
+                  <li>Access to experienced professionals and experts</li>
+                  <li>Real-world insights and practical knowledge</li>
+                  <li>Enhanced learning experiences for students</li>
+                  <li>Free or low-cost educational resources</li>
+                  <li>Mentorship opportunities for students</li>
+                </ul>
+              </div>
+            </div>
+          </div>
+
+          {/* Explore Magic Hours */}
+          <Button
+            onClick={() => navigate("/auth")}
+            style={{
+              display: 'block',
+              width: '220px',
+              margin: '30px auto',
+              padding: '14px 20px',
+              backgroundColor: '#1b263b',
+              color: 'white',
+              fontSize: '16px'
+            }}
+          >
+            Explore Magic Hours
+          </Button>
+        </div>
+      )}
     </div>
   );
 };

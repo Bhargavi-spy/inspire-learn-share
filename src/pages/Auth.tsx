@@ -39,6 +39,8 @@ export default function Auth() {
   const [mobileNumber, setMobileNumber] = useState("");
   const [role, setRole] = useState<"school" | "senior" | "student">(defaultRole as any);
   const [interests, setInterests] = useState<string[]>([]);
+  const [schoolName, setSchoolName] = useState("");
+  const [schoolEmail, setSchoolEmail] = useState("");
   const [termsAccepted, setTermsAccepted] = useState(false);
 
   const handleSignUp = async (e: React.FormEvent) => {
@@ -81,6 +83,8 @@ export default function Auth() {
           email,
           role,
           interests: role === "senior" ? (interests as any) : [],
+          school_name: role === "school" ? schoolName : null,
+          school_email: role === "school" ? schoolEmail : null,
         });
 
         if (profileError) throw profileError;
@@ -186,6 +190,33 @@ export default function Auth() {
                     required
                   />
                 </div>
+
+                {role === "school" && (
+                  <>
+                    <div className="space-y-2">
+                      <Label htmlFor="schoolName">School Name</Label>
+                      <Input
+                        id="schoolName"
+                        value={schoolName}
+                        onChange={(e) => setSchoolName(e.target.value)}
+                        placeholder="Enter school name"
+                        required
+                      />
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label htmlFor="schoolEmail">School Email</Label>
+                      <Input
+                        id="schoolEmail"
+                        type="email"
+                        value={schoolEmail}
+                        onChange={(e) => setSchoolEmail(e.target.value)}
+                        placeholder="Enter school email"
+                        required
+                      />
+                    </div>
+                  </>
+                )}
 
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">

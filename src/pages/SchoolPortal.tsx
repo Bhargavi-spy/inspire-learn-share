@@ -7,13 +7,14 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { toast } from "sonner";
-import { LogOut, Plus, Trash2, Calendar } from "lucide-react";
+import { LogOut, Plus, Trash2, Calendar, CheckCircle, XCircle } from "lucide-react";
 
 export default function SchoolPortal() {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
   const [profile, setProfile] = useState<any>(null);
   const [invitations, setInvitations] = useState<any[]>([]);
+  const [invitationResponses, setInvitationResponses] = useState<any[]>([]);
   
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
@@ -22,6 +23,7 @@ export default function SchoolPortal() {
   useEffect(() => {
     checkAuth();
     fetchInvitations();
+    fetchResponses();
   }, []);
 
   const checkAuth = async () => {
@@ -64,6 +66,24 @@ export default function SchoolPortal() {
     }
   };
 
+  const fetchResponses = async () => {
+    const { data, error } = await supabase
+      .from("invitation_responses")
+      .select(`
+        *,
+        profiles!invitation_responses_senior_id_fkey (
+          full_name,
+          email
+        )
+      `);
+
+    if (error) {
+      toast.error("Error fetching responses");
+    } else {
+      setInvitationResponses(data || []);
+    }
+  };
+
   const handleCreateInvitation = async (e: React.FormEvent) => {
     e.preventDefault();
     
@@ -92,6 +112,7 @@ export default function SchoolPortal() {
       setDescription("");
       setEventDate("");
       fetchInvitations();
+      fetchResponses();
     } catch (error: any) {
       toast.error(error.message || "Error creating invitation");
     } finally {
@@ -223,11 +244,36 @@ export default function SchoolPortal() {
                         </p>
                       )}
                       {invitation.event_date && (
-                        <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                        <div className="flex items-center gap-2 text-sm text-muted-foreground mb-3">
                           <Calendar className="h-4 w-4" />
                           {new Date(invitation.event_date).toLocaleString()}
                         </div>
                       )}
+                      {(() => {
+                        const responses = invitationResponses.filter(r => r.invitation_id === invitation.id);
+                        const accepted = responses.filter(r => r.status === 'accepted');
+                        
+                        if (accepted.length > 0) {
+                          return (
+                            <div className="mt-3 space-y-2">
+                              <p className="text-sm font-medium text-green-600">
+                                <CheckCircle className="inline h-4 w-4 mr-1" />
+                                {accepted.length} Senior{accepted.length !== 1 ? 's' : ''} Accepted
+                              </p>
+                              <div className="space-y-1">
+                                {accepted.map((response: any) => (
+                                  <div key={response.id} className="text-sm text-muted-foreground pl-5">
+                                    • {response.profiles?.full_name} ({response.profiles?.email})
+                                  </div>
+                                ))}
+                              </div>
+                            </div>
+                          );
+                        }
+                        return (
+                          <p className="text-sm text-muted-foreground mt-2">No responses yet</p>
+                        );
+                      })()}
                     </div>
                   ))
                 )}

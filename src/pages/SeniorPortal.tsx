@@ -17,6 +17,7 @@ export default function SeniorPortal() {
   const [profile, setProfile] = useState<any>(null);
   const [videos, setVideos] = useState<any[]>([]);
   const [invitations, setInvitations] = useState<any[]>([]);
+  const [invitationResponses, setInvitationResponses] = useState<any[]>([]);
   const [liveSessions, setLiveSessions] = useState<any[]>([]);
   
   // Video form
@@ -97,6 +98,13 @@ export default function SeniorPortal() {
       .select("*, profiles!invitations_school_id_fkey(full_name)")
       .order("created_at", { ascending: false });
     setInvitations(invitationsData || []);
+
+    // Fetch invitation responses
+    const { data: responsesData } = await supabase
+      .from("invitation_responses")
+      .select("*")
+      .eq("senior_id", user.id);
+    setInvitationResponses(responsesData || []);
 
     // Fetch live sessions
     const { data: liveData } = await supabase
@@ -206,6 +214,38 @@ export default function SeniorPortal() {
     }
   };
 
+  const handleInvitationResponse = async (invitationId: string, status: "accepted" | "rejected") => {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return;
+
+    const existingResponse = invitationResponses.find(r => r.invitation_id === invitationId);
+
+    if (existingResponse) {
+      const { error } = await supabase
+        .from("invitation_responses")
+        .update({ status, responded_at: new Date().toISOString() })
+        .eq("id", existingResponse.id);
+
+      if (error) {
+        toast.error("Error updating response");
+      } else {
+        toast.success(`Invitation ${status}`);
+        fetchData();
+      }
+    } else {
+      const { error } = await supabase
+        .from("invitation_responses")
+        .insert({ invitation_id: invitationId, senior_id: user.id, status });
+
+      if (error) {
+        toast.error("Error responding to invitation");
+      } else {
+        toast.success(`Invitation ${status}`);
+        fetchData();
+      }
+    }
+  };
+
   const handleSignOut = async () => {
     await supabase.auth.signOut();
     navigate("/");
@@ -235,20 +275,47 @@ export default function SeniorPortal() {
                       <p className="text-sm text-muted-foreground">No invitations yet</p>
                     ) : (
                       <div className="space-y-2 max-h-[400px] overflow-y-auto">
-                        {invitations.map((inv) => (
-                          <Card key={inv.id} className="p-3">
-                            <h4 className="font-semibold text-sm">{inv.title}</h4>
-                            <p className="text-xs text-muted-foreground">
-                              From: {inv.profiles?.full_name}
-                            </p>
-                            {inv.event_date && (
-                              <p className="text-xs text-muted-foreground flex items-center gap-1 mt-1">
-                                <Calendar className="h-3 w-3" />
-                                {new Date(inv.event_date).toLocaleString()}
+                        {invitations.map((inv) => {
+                          const response = invitationResponses.find(r => r.invitation_id === inv.id);
+                          return (
+                            <Card key={inv.id} className="p-3">
+                              <h4 className="font-semibold text-sm">{inv.title}</h4>
+                              <p className="text-xs text-muted-foreground">
+                                From: {inv.profiles?.full_name}
                               </p>
-                            )}
-                          </Card>
-                        ))}
+                              {inv.event_date && (
+                                <p className="text-xs text-muted-foreground flex items-center gap-1 mt-1">
+                                  <Calendar className="h-3 w-3" />
+                                  {new Date(inv.event_date).toLocaleString()}
+                                </p>
+                              )}
+                              {response ? (
+                                <div className={`text-xs font-medium mt-2 ${response.status === 'accepted' ? 'text-green-600' : 'text-red-600'}`}>
+                                  {response.status === 'accepted' ? '✓ Accepted' : '✗ Rejected'}
+                                </div>
+                              ) : (
+                                <div className="flex gap-2 mt-2">
+                                  <Button
+                                    size="sm"
+                                    variant="default"
+                                    className="h-7 text-xs"
+                                    onClick={() => handleInvitationResponse(inv.id, 'accepted')}
+                                  >
+                                    Accept
+                                  </Button>
+                                  <Button
+                                    size="sm"
+                                    variant="destructive"
+                                    className="h-7 text-xs"
+                                    onClick={() => handleInvitationResponse(inv.id, 'rejected')}
+                                  >
+                                    Reject
+                                  </Button>
+                                </div>
+                              )}
+                            </Card>
+                          );
+                        })}
                       </div>
                     )}
                   </div>

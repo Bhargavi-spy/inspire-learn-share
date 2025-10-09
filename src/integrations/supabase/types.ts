@@ -14,6 +14,45 @@ export type Database = {
   }
   public: {
     Tables: {
+      invitation_responses: {
+        Row: {
+          id: string
+          invitation_id: string
+          responded_at: string
+          senior_id: string
+          status: string
+        }
+        Insert: {
+          id?: string
+          invitation_id: string
+          responded_at?: string
+          senior_id: string
+          status: string
+        }
+        Update: {
+          id?: string
+          invitation_id?: string
+          responded_at?: string
+          senior_id?: string
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "invitation_responses_invitation_id_fkey"
+            columns: ["invitation_id"]
+            isOneToOne: false
+            referencedRelation: "invitations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "invitation_responses_senior_id_fkey"
+            columns: ["senior_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       invitations: {
         Row: {
           created_at: string | null
@@ -101,6 +140,8 @@ export type Database = {
           interests: Database["public"]["Enums"]["senior_interest"][] | null
           mobile_number: string
           role: Database["public"]["Enums"]["user_role"]
+          school_email: string | null
+          school_name: string | null
           updated_at: string | null
         }
         Insert: {
@@ -113,6 +154,8 @@ export type Database = {
           interests?: Database["public"]["Enums"]["senior_interest"][] | null
           mobile_number: string
           role: Database["public"]["Enums"]["user_role"]
+          school_email?: string | null
+          school_name?: string | null
           updated_at?: string | null
         }
         Update: {
@@ -125,6 +168,8 @@ export type Database = {
           interests?: Database["public"]["Enums"]["senior_interest"][] | null
           mobile_number?: string
           role?: Database["public"]["Enums"]["user_role"]
+          school_email?: string | null
+          school_name?: string | null
           updated_at?: string | null
         }
         Relationships: []

@@ -30,9 +30,10 @@ const Index = () => {
             Legacy<span style={{ color: '#778da9' }}>#Genα</span>
           </a>
           <div style={{ display: 'flex', gap: '30px' }}>
-            <a href="#" style={{ color: 'white', textDecoration: 'none', fontSize: '16px', transition: 'color 0.3s' }}>About</a>
-            <a href="#" style={{ color: 'white', textDecoration: 'none', fontSize: '16px', transition: 'color 0.3s' }}>Services</a>
-            <a href="#" style={{ color: 'white', textDecoration: 'none', fontSize: '16px', transition: 'color 0.3s' }}>Help</a>
+            <a href="/about" style={{ color: 'white', textDecoration: 'none', fontSize: '16px', transition: 'color 0.3s' }}>About</a>
+            <a href="/services" style={{ color: 'white', textDecoration: 'none', fontSize: '16px', transition: 'color 0.3s' }}>Services</a>
+            <a href="/help" style={{ color: 'white', textDecoration: 'none', fontSize: '16px', transition: 'color 0.3s' }}>Help</a>
+            <a href="/terms" style={{ color: 'white', textDecoration: 'none', fontSize: '16px', transition: 'color 0.3s' }}>Terms</a>
           </div>
         </div>
       </nav>

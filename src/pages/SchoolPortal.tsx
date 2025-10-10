@@ -8,6 +8,14 @@ import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { toast } from "sonner";
 import { LogOut, Plus, Trash2, Calendar, CheckCircle, XCircle } from "lucide-react";
+import { z } from "zod";
+
+// Validation schema
+const invitationSchema = z.object({
+  title: z.string().trim().min(1, "Title is required").max(200, "Title too long"),
+  description: z.string().max(1000, "Description too long").optional(),
+  eventDate: z.string().optional(),
+});
 
 export default function SchoolPortal() {
   const navigate = useNavigate();
@@ -95,14 +103,21 @@ export default function SchoolPortal() {
     setLoading(true);
 
     try {
+      // Validate input data
+      const validatedData = invitationSchema.parse({
+        title,
+        description: description || undefined,
+        eventDate: eventDate || undefined,
+      });
+
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error("Not authenticated");
 
       const { error } = await supabase.from("invitations").insert({
         school_id: user.id,
-        title,
-        description,
-        event_date: eventDate ? new Date(eventDate).toISOString() : null,
+        title: validatedData.title,
+        description: validatedData.description,
+        event_date: validatedData.eventDate ? new Date(validatedData.eventDate).toISOString() : null,
       });
 
       if (error) throw error;
@@ -114,7 +129,11 @@ export default function SchoolPortal() {
       fetchInvitations();
       fetchResponses();
     } catch (error: any) {
-      toast.error(error.message || "Error creating invitation");
+      if (error instanceof z.ZodError) {
+        toast.error(error.errors[0].message);
+      } else {
+        toast.error(error.message || "Error creating invitation");
+      }
     } finally {
       setLoading(false);
     }

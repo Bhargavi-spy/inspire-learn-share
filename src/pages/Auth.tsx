@@ -10,6 +10,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "sonner";
 import { School, Users, GraduationCap } from "lucide-react";
+import { z } from "zod";
 
 const INTERESTS = [
   "Art",
@@ -22,6 +23,24 @@ const INTERESTS = [
   "Cooking",
   "Gardening"
 ];
+
+// Validation schemas
+const signUpSchema = z.object({
+  email: z.string().email("Invalid email address").max(255, "Email too long"),
+  password: z.string().min(8, "Password must be at least 8 characters").max(100, "Password too long"),
+  fullName: z.string().trim().min(1, "Name is required").max(100, "Name too long"),
+  age: z.number().int().min(1, "Age must be at least 1").max(120, "Age must be realistic"),
+  mobileNumber: z.string().regex(/^\+?[1-9]\d{1,14}$/, "Invalid mobile number format"),
+  role: z.enum(['school', 'senior', 'student']),
+  schoolName: z.string().max(200, "School name too long").optional(),
+  schoolEmail: z.string().email("Invalid email").max(255, "Email too long").optional(),
+  interests: z.array(z.string()).optional(),
+});
+
+const signInSchema = z.object({
+  email: z.string().email("Invalid email address"),
+  password: z.string().min(1, "Password is required"),
+});
 
 export default function Auth() {
   const navigate = useNavigate();
@@ -64,9 +83,22 @@ export default function Auth() {
     setLoading(true);
 
     try {
-      const { data: authData, error: authError } = await supabase.auth.signUp({
+      // Validate input data
+      const validatedData = signUpSchema.parse({
         email,
         password,
+        fullName,
+        age: parseInt(age),
+        mobileNumber,
+        role,
+        schoolName: role === 'school' ? schoolName : undefined,
+        schoolEmail: role === 'school' ? schoolEmail : undefined,
+        interests: role === 'senior' ? interests : undefined,
+      });
+
+      const { data: authData, error: authError } = await supabase.auth.signUp({
+        email: validatedData.email,
+        password: validatedData.password,
         options: {
           emailRedirectTo: `${window.location.origin}/`,
         },
@@ -77,14 +109,14 @@ export default function Auth() {
       if (authData.user) {
         const { error: profileError } = await supabase.from("profiles").insert({
           id: authData.user.id,
-          full_name: fullName,
-          age: parseInt(age),
-          mobile_number: mobileNumber,
-          email,
-          role,
-          interests: role === "senior" ? (interests as any) : [],
-          school_name: role === "school" ? schoolName : null,
-          school_email: role === "school" ? schoolEmail : null,
+          full_name: validatedData.fullName,
+          age: validatedData.age,
+          mobile_number: validatedData.mobileNumber,
+          email: validatedData.email,
+          role: validatedData.role,
+          interests: validatedData.interests as any || [],
+          school_name: validatedData.schoolName || null,
+          school_email: validatedData.schoolEmail || null,
         });
 
         if (profileError) throw profileError;
@@ -93,7 +125,11 @@ export default function Auth() {
         navigate(role === "school" ? "/school" : role === "senior" ? "/senior" : "/student");
       }
     } catch (error: any) {
-      toast.error(error.message || "Error signing up");
+      if (error instanceof z.ZodError) {
+        toast.error(error.errors[0].message);
+      } else {
+        toast.error(error.message || "Error signing up");
+      }
     } finally {
       setLoading(false);
     }
@@ -104,9 +140,12 @@ export default function Auth() {
     setLoading(true);
 
     try {
+      // Validate input data
+      const validatedData = signInSchema.parse({ email, password });
+
       const { data: authData, error: authError } = await supabase.auth.signInWithPassword({
-        email,
-        password,
+        email: validatedData.email,
+        password: validatedData.password,
       });
 
       if (authError) throw authError;
@@ -124,7 +163,11 @@ export default function Auth() {
         }
       }
     } catch (error: any) {
-      toast.error(error.message || "Error signing in");
+      if (error instanceof z.ZodError) {
+        toast.error(error.errors[0].message);
+      } else {
+        toast.error(error.message || "Error signing in");
+      }
     } finally {
       setLoading(false);
     }

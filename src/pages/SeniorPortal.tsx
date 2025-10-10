@@ -10,6 +10,26 @@ import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/co
 import { toast } from "sonner";
 import { LogOut, Menu, Coins, Video, Radio, Trash2, Calendar, Upload } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
+import { z } from "zod";
+
+// Validation schemas
+const videoSchema = z.object({
+  title: z.string().trim().min(1, "Title is required").max(200, "Title too long"),
+  description: z.string().max(1000, "Description too long").optional(),
+  videoUrl: z.string().url("Must be a valid URL").refine(
+    url => url.includes('youtube.com') || url.includes('youtu.be'),
+    { message: "Must be a YouTube URL" }
+  ),
+});
+
+const liveSessionSchema = z.object({
+  title: z.string().trim().min(1, "Title is required").max(200, "Title too long"),
+  description: z.string().max(1000, "Description too long").optional(),
+  youtubeLiveUrl: z.string().url("Must be a valid URL").refine(
+    url => url.includes('youtube.com') || url.includes('youtu.be'),
+    { message: "Must be a YouTube URL" }
+  ),
+});
 
 export default function SeniorPortal() {
   const navigate = useNavigate();
@@ -126,14 +146,21 @@ export default function SeniorPortal() {
     setLoading(true);
 
     try {
+      // Validate input data
+      const validatedData = videoSchema.parse({
+        title: videoTitle,
+        description: videoDescription || undefined,
+        videoUrl,
+      });
+
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error("Not authenticated");
 
       const { error } = await supabase.from("videos").insert({
         senior_id: user.id,
-        title: videoTitle,
-        description: videoDescription,
-        video_url: videoUrl,
+        title: validatedData.title,
+        description: validatedData.description,
+        video_url: validatedData.videoUrl,
       });
 
       if (error) throw error;
@@ -144,7 +171,11 @@ export default function SeniorPortal() {
       setVideoUrl("");
       fetchData();
     } catch (error: any) {
-      toast.error(error.message || "Error uploading video");
+      if (error instanceof z.ZodError) {
+        toast.error(error.errors[0].message);
+      } else {
+        toast.error(error.message || "Error uploading video");
+      }
     } finally {
       setLoading(false);
     }
@@ -173,14 +204,21 @@ export default function SeniorPortal() {
     setLoading(true);
 
     try {
+      // Validate input data
+      const validatedData = liveSessionSchema.parse({
+        title: liveTitle,
+        description: liveDescription || undefined,
+        youtubeLiveUrl: liveUrl,
+      });
+
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error("Not authenticated");
 
       const { error } = await supabase.from("live_sessions").insert({
         senior_id: user.id,
-        title: liveTitle,
-        description: liveDescription,
-        youtube_live_url: liveUrl,
+        title: validatedData.title,
+        description: validatedData.description,
+        youtube_live_url: validatedData.youtubeLiveUrl,
         is_active: true,
       });
 
@@ -192,7 +230,11 @@ export default function SeniorPortal() {
       setLiveUrl("");
       fetchData();
     } catch (error: any) {
-      toast.error(error.message || "Error starting live session");
+      if (error instanceof z.ZodError) {
+        toast.error(error.errors[0].message);
+      } else {
+        toast.error(error.message || "Error starting live session");
+      }
     } finally {
       setLoading(false);
     }

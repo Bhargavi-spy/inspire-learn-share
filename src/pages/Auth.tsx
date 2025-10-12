@@ -61,6 +61,7 @@ export default function Auth() {
   const [schoolName, setSchoolName] = useState("");
   const [schoolEmail, setSchoolEmail] = useState("");
   const [termsAccepted, setTermsAccepted] = useState(false);
+  const [description, setDescription] = useState("");
 
   const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -117,6 +118,8 @@ export default function Auth() {
           interests: validatedData.interests as any || [],
           school_name: validatedData.schoolName || null,
           school_email: validatedData.schoolEmail || null,
+          description: description || null,
+          theme_preference: 'light',
         });
 
         if (profileError) throw profileError;
@@ -314,23 +317,34 @@ export default function Auth() {
                 </div>
 
                 {role === "senior" && (
-                  <div className="space-y-2">
-                    <Label>Interests</Label>
-                    <div className="grid grid-cols-2 gap-2">
-                      {INTERESTS.map((interest) => (
-                        <div key={interest} className="flex items-center space-x-2">
-                          <Checkbox
-                            id={interest}
-                            checked={interests.includes(interest)}
-                            onCheckedChange={() => toggleInterest(interest)}
-                          />
-                          <Label htmlFor={interest} className="text-sm cursor-pointer">
-                            {interest}
-                          </Label>
-                        </div>
-                      ))}
+                  <>
+                    <div className="space-y-2">
+                      <Label>Interests</Label>
+                      <div className="grid grid-cols-2 gap-2">
+                        {INTERESTS.map((interest) => (
+                          <div key={interest} className="flex items-center space-x-2">
+                            <Checkbox
+                              id={interest}
+                              checked={interests.includes(interest)}
+                              onCheckedChange={() => toggleInterest(interest)}
+                            />
+                            <Label htmlFor={interest} className="text-sm cursor-pointer">
+                              {interest}
+                            </Label>
+                          </div>
+                        ))}
+                      </div>
                     </div>
-                  </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="description">About Me (Optional)</Label>
+                      <Input
+                        id="description"
+                        value={description}
+                        onChange={(e) => setDescription(e.target.value)}
+                        placeholder="Tell us about yourself..."
+                      />
+                    </div>
+                  </>
                 )}
 
                 <div className="flex items-center space-x-2">

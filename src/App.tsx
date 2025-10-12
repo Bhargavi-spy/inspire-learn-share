@@ -7,6 +7,8 @@ import Index from "./pages/Index";
 import Auth from "./pages/Auth";
 import SchoolPortal from "./pages/SchoolPortal";
 import SeniorPortal from "./pages/SeniorPortal";
+import SeniorProfile from "./pages/SeniorProfile";
+import BrowseVideos from "./pages/BrowseVideos";
 import StudentPortal from "./pages/StudentPortal";
 import About from "./pages/About";
 import Services from "./pages/Services";
@@ -27,6 +29,8 @@ const App = () => (
           <Route path="/auth" element={<Auth />} />
           <Route path="/school" element={<SchoolPortal />} />
           <Route path="/senior" element={<SeniorPortal />} />
+          <Route path="/senior/profile" element={<SeniorProfile />} />
+          <Route path="/senior/browse-videos" element={<BrowseVideos />} />
           <Route path="/student" element={<StudentPortal />} />
           <Route path="/about" element={<About />} />
           <Route path="/services" element={<Services />} />

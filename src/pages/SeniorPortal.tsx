@@ -8,7 +8,10 @@ import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { toast } from "sonner";
-import { LogOut, Menu, Coins, Video, Radio, Trash2, Calendar, Upload } from "lucide-react";
+import { LogOut, Menu, Coins, Video, Radio, Trash2, Calendar, Upload, User, PlaySquare } from "lucide-react";
+import ChatbotAssistant from "@/components/ChatbotAssistant";
+import GoogleTranslate from "@/components/GoogleTranslate";
+import ThemeToggle from "@/components/ThemeToggle";
 import { Badge } from "@/components/ui/badge";
 import { z } from "zod";
 
@@ -54,8 +57,8 @@ export default function SeniorPortal() {
     checkAuth();
     fetchData();
     
-    // Subscribe to real-time coin updates
-    const channel = supabase
+    // Subscribe to real-time updates
+    const profileChannel = supabase
       .channel('profile-changes')
       .on(
         'postgres_changes',
@@ -72,8 +75,40 @@ export default function SeniorPortal() {
       )
       .subscribe();
 
+    const invitationsChannel = supabase
+      .channel('senior-invitations')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'invitations'
+        },
+        () => {
+          fetchData();
+        }
+      )
+      .subscribe();
+
+    const responsesChannel = supabase
+      .channel('senior-responses')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'invitation_responses'
+        },
+        () => {
+          fetchData();
+        }
+      )
+      .subscribe();
+
     return () => {
-      supabase.removeChannel(channel);
+      supabase.removeChannel(profileChannel);
+      supabase.removeChannel(invitationsChannel);
+      supabase.removeChannel(responsesChannel);
     };
   }, []);
 
@@ -311,7 +346,24 @@ export default function SeniorPortal() {
                   <SheetTitle>Menu</SheetTitle>
                 </SheetHeader>
                 <div className="mt-6 space-y-4">
-                  <div className="space-y-2">
+                  <Button
+                    variant="outline"
+                    className="w-full justify-start"
+                    onClick={() => navigate("/senior/profile")}
+                  >
+                    <User className="mr-2 h-4 w-4" />
+                    My Profile
+                  </Button>
+                  <Button
+                    variant="outline"
+                    className="w-full justify-start"
+                    onClick={() => navigate("/senior/browse-videos")}
+                  >
+                    <PlaySquare className="mr-2 h-4 w-4" />
+                    Browse Videos
+                  </Button>
+                  
+                  <div className="space-y-2 pt-4 border-t">
                     <h3 className="font-semibold text-sm text-muted-foreground">My Invitations</h3>
                     {invitations.length === 0 ? (
                       <p className="text-sm text-muted-foreground">No invitations yet</p>
@@ -372,6 +424,8 @@ export default function SeniorPortal() {
           </div>
           
           <div className="flex items-center gap-4">
+            <GoogleTranslate />
+            <ThemeToggle />
             <Badge variant="secondary" className="flex items-center gap-2">
               <Coins className="h-4 w-4" />
               {profile.coins} Coins
@@ -573,6 +627,8 @@ export default function SeniorPortal() {
           </CardContent>
         </Card>
       </div>
+      
+      <ChatbotAssistant />
     </div>
   );
 }

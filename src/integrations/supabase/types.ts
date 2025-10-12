@@ -134,42 +134,51 @@ export type Database = {
           age: number
           coins: number | null
           created_at: string | null
+          description: string | null
           email: string
           full_name: string
           id: string
           interests: Database["public"]["Enums"]["senior_interest"][] | null
           mobile_number: string
+          profile_image: string | null
           role: Database["public"]["Enums"]["user_role"]
           school_email: string | null
           school_name: string | null
+          theme_preference: string | null
           updated_at: string | null
         }
         Insert: {
           age: number
           coins?: number | null
           created_at?: string | null
+          description?: string | null
           email: string
           full_name: string
           id: string
           interests?: Database["public"]["Enums"]["senior_interest"][] | null
           mobile_number: string
+          profile_image?: string | null
           role: Database["public"]["Enums"]["user_role"]
           school_email?: string | null
           school_name?: string | null
+          theme_preference?: string | null
           updated_at?: string | null
         }
         Update: {
           age?: number
           coins?: number | null
           created_at?: string | null
+          description?: string | null
           email?: string
           full_name?: string
           id?: string
           interests?: Database["public"]["Enums"]["senior_interest"][] | null
           mobile_number?: string
+          profile_image?: string | null
           role?: Database["public"]["Enums"]["user_role"]
           school_email?: string | null
           school_name?: string | null
+          theme_preference?: string | null
           updated_at?: string | null
         }
         Relationships: []

@@ -7,8 +7,10 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { toast } from "sonner";
-import { LogOut, Plus, Trash2, Calendar, CheckCircle, XCircle } from "lucide-react";
+import { LogOut, Plus, Trash2, Calendar, CheckCircle, XCircle, X } from "lucide-react";
 import { z } from "zod";
+import ThemeToggle from "@/components/ThemeToggle";
+import GoogleTranslate from "@/components/GoogleTranslate";
 
 // Validation schema
 const invitationSchema = z.object({
@@ -81,7 +83,9 @@ export default function SchoolPortal() {
         *,
         profiles!invitation_responses_senior_id_fkey (
           full_name,
-          email
+          email,
+          mobile_number,
+          description
         )
       `);
 
@@ -91,6 +95,44 @@ export default function SchoolPortal() {
       setInvitationResponses(data || []);
     }
   };
+
+  // Set up real-time subscriptions
+  useEffect(() => {
+    const invitationsChannel = supabase
+      .channel('school-invitations')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'invitations'
+        },
+        () => {
+          fetchInvitations();
+        }
+      )
+      .subscribe();
+
+    const responsesChannel = supabase
+      .channel('invitation-responses')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'invitation_responses'
+        },
+        () => {
+          fetchResponses();
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(invitationsChannel);
+      supabase.removeChannel(responsesChannel);
+    };
+  }, []);
 
   const handleCreateInvitation = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -166,10 +208,14 @@ export default function SchoolPortal() {
             <h1 className="text-2xl font-bold text-primary">School Portal</h1>
             <p className="text-sm text-muted-foreground">Welcome, {profile.full_name}</p>
           </div>
-          <Button variant="outline" onClick={handleSignOut}>
-            <LogOut className="mr-2 h-4 w-4" />
-            Sign Out
-          </Button>
+          <div className="flex items-center gap-4">
+            <GoogleTranslate />
+            <ThemeToggle />
+            <Button variant="outline" onClick={handleSignOut}>
+              <LogOut className="mr-2 h-4 w-4" />
+              Sign Out
+            </Button>
+          </div>
         </div>
       </nav>
 
@@ -271,26 +317,40 @@ export default function SchoolPortal() {
                       {(() => {
                         const responses = invitationResponses.filter(r => r.invitation_id === invitation.id);
                         const accepted = responses.filter(r => r.status === 'accepted');
+                        const rejected = responses.filter(r => r.status === 'rejected');
                         
-                        if (accepted.length > 0) {
-                          return (
-                            <div className="mt-3 space-y-2">
-                              <p className="text-sm font-medium text-green-600">
-                                <CheckCircle className="inline h-4 w-4 mr-1" />
-                                {accepted.length} Senior{accepted.length !== 1 ? 's' : ''} Accepted
-                              </p>
-                              <div className="space-y-1">
-                                {accepted.map((response: any) => (
-                                  <div key={response.id} className="text-sm text-muted-foreground pl-5">
-                                    • {response.profiles?.full_name} ({response.profiles?.email})
-                                  </div>
-                                ))}
-                              </div>
-                            </div>
-                          );
-                        }
                         return (
-                          <p className="text-sm text-muted-foreground mt-2">No responses yet</p>
+                          <div className="mt-3 space-y-2">
+                            {accepted.length > 0 && (
+                              <div className="space-y-2">
+                                <p className="text-sm font-medium text-green-600">
+                                  <CheckCircle className="inline h-4 w-4 mr-1" />
+                                  {accepted.length} Senior{accepted.length !== 1 ? 's' : ''} Accepted
+                                </p>
+                                <div className="space-y-2">
+                                  {accepted.map((response: any) => (
+                                    <div key={response.id} className="p-2 bg-green-50 dark:bg-green-950/20 rounded border border-green-200 dark:border-green-900">
+                                      <p className="text-sm font-medium">{response.profiles?.full_name}</p>
+                                      <p className="text-xs text-muted-foreground">Email: {response.profiles?.email}</p>
+                                      <p className="text-xs text-muted-foreground">Phone: {response.profiles?.mobile_number}</p>
+                                      {response.profiles?.description && (
+                                        <p className="text-xs text-muted-foreground mt-1">About: {response.profiles?.description}</p>
+                                      )}
+                                    </div>
+                                  ))}
+                                </div>
+                              </div>
+                            )}
+                            {rejected.length > 0 && (
+                              <p className="text-sm text-red-600">
+                                <XCircle className="inline h-4 w-4 mr-1" />
+                                {rejected.length} Rejected
+                              </p>
+                            )}
+                            {responses.length === 0 && (
+                              <p className="text-sm text-muted-foreground">No responses yet</p>
+                            )}
+                          </div>
                         );
                       })()}
                     </div>

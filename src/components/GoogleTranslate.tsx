@@ -18,11 +18,12 @@ export default function GoogleTranslate() {
       document.body.appendChild(script);
     };
 
-    // Initialize Google Translate
+    // Initialize Google Translate with limited languages
     window.googleTranslateElementInit = () => {
       new window.google.translate.TranslateElement(
         {
           pageLanguage: "en",
+          includedLanguages: "en,hi,te", // English, Hindi, Telugu only
           layout: window.google.translate.TranslateElement.InlineLayout.SIMPLE,
         },
         "google_translate_element"

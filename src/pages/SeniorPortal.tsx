@@ -19,10 +19,7 @@ import { z } from "zod";
 const videoSchema = z.object({
   title: z.string().trim().min(1, "Title is required").max(200, "Title too long"),
   description: z.string().max(1000, "Description too long").optional(),
-  videoUrl: z.string().url("Must be a valid URL").refine(
-    url => url.includes('youtube.com') || url.includes('youtu.be'),
-    { message: "Must be a YouTube URL" }
-  ),
+  videoUrl: z.string().optional(),
 });
 
 const liveSessionSchema = z.object({
@@ -47,6 +44,8 @@ export default function SeniorPortal() {
   const [videoTitle, setVideoTitle] = useState("");
   const [videoDescription, setVideoDescription] = useState("");
   const [videoUrl, setVideoUrl] = useState("");
+  const [videoFile, setVideoFile] = useState<File | null>(null);
+  const [uploadProgress, setUploadProgress] = useState(0);
   
   // Live session form
   const [liveTitle, setLiveTitle] = useState("");
@@ -173,23 +172,53 @@ export default function SeniorPortal() {
   const handleUploadVideo = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!videoTitle || !videoUrl) {
-      toast.error("Please provide title and video URL");
+    if (!videoTitle) {
+      toast.error("Please provide a title");
+      return;
+    }
+
+    if (!videoFile && !videoUrl) {
+      toast.error("Please provide either a video file or YouTube URL");
       return;
     }
 
     setLoading(true);
+    setUploadProgress(0);
 
     try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error("Not authenticated");
+
+      let finalVideoUrl = videoUrl;
+
+      // If video file is selected, upload to storage
+      if (videoFile) {
+        const fileExt = videoFile.name.split('.').pop();
+        const fileName = `${user.id}/${Date.now()}.${fileExt}`;
+        
+        const { error: uploadError } = await supabase.storage
+          .from('videos')
+          .upload(fileName, videoFile, {
+            cacheControl: '3600',
+            upsert: false
+          });
+
+        if (uploadError) throw uploadError;
+
+        const { data: { publicUrl } } = supabase.storage
+          .from('videos')
+          .getPublicUrl(fileName);
+
+        finalVideoUrl = publicUrl;
+        setUploadProgress(100);
+      }
+
       // Validate input data
       const validatedData = videoSchema.parse({
         title: videoTitle,
         description: videoDescription || undefined,
-        videoUrl,
+        videoUrl: finalVideoUrl,
       });
-
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) throw new Error("Not authenticated");
 
       const { error } = await supabase.from("videos").insert({
         senior_id: user.id,
@@ -204,6 +233,8 @@ export default function SeniorPortal() {
       setVideoTitle("");
       setVideoDescription("");
       setVideoUrl("");
+      setVideoFile(null);
+      setUploadProgress(0);
       fetchData();
     } catch (error: any) {
       if (error instanceof z.ZodError) {
@@ -474,16 +505,48 @@ export default function SeniorPortal() {
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="videoUrl">Video URL</Label>
+                  <Label htmlFor="videoFile">Upload Video File</Label>
+                  <Input
+                    id="videoFile"
+                    type="file"
+                    accept="video/*"
+                    onChange={(e) => {
+                      const file = e.target.files?.[0];
+                      if (file) {
+                        setVideoFile(file);
+                        setVideoUrl(""); // Clear URL if file is selected
+                      }
+                    }}
+                  />
+                  <p className="text-xs text-muted-foreground">Or provide a YouTube URL below</p>
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="videoUrl">YouTube URL (Optional)</Label>
                   <Input
                     id="videoUrl"
                     type="url"
                     value={videoUrl}
-                    onChange={(e) => setVideoUrl(e.target.value)}
+                    onChange={(e) => {
+                      setVideoUrl(e.target.value);
+                      setVideoFile(null); // Clear file if URL is provided
+                    }}
                     placeholder="https://youtube.com/watch?v=..."
-                    required
+                    disabled={!!videoFile}
                   />
                 </div>
+
+                {uploadProgress > 0 && uploadProgress < 100 && (
+                  <div className="space-y-2">
+                    <div className="w-full bg-secondary rounded-full h-2">
+                      <div 
+                        className="bg-primary h-2 rounded-full transition-all duration-300"
+                        style={{ width: `${uploadProgress}%` }}
+                      />
+                    </div>
+                    <p className="text-xs text-center text-muted-foreground">Uploading... {uploadProgress}%</p>
+                  </div>
+                )}
 
                 <Button type="submit" className="w-full" disabled={loading}>
                   {loading ? "Uploading..." : "Upload Video"}

@@ -1,13 +1,37 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Menu } from "lucide-react";
+import { Menu, Shield } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
 
 const Index = () => {
   const navigate = useNavigate();
   const [showPopup, setShowPopup] = useState(true);
   const [showMainContent, setShowMainContent] = useState(false);
   const [showMenu, setShowMenu] = useState(false);
+  const [isAdmin, setIsAdmin] = useState(false);
+
+  useEffect(() => {
+    checkAdminStatus();
+  }, []);
+
+  const checkAdminStatus = async () => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+
+      const { data: userRoles } = await supabase
+        .from("user_roles")
+        .select("role")
+        .eq("user_id", user.id)
+        .eq("role", "admin")
+        .single();
+
+      setIsAdmin(!!userRoles);
+    } catch (error) {
+      console.error("Error checking admin status:", error);
+    }
+  };
 
   const selectRole = (role: 'citizen' | 'school' | 'upload') => {
     setShowPopup(false);
@@ -29,11 +53,28 @@ const Index = () => {
           <a href="#" style={{ color: 'white', fontSize: '24px', fontWeight: 'bold', textDecoration: 'none' }}>
             Legacy<span style={{ color: '#778da9' }}>#Genα</span>
           </a>
-          <div style={{ display: 'flex', gap: '30px' }}>
+          <div style={{ display: 'flex', gap: '30px', alignItems: 'center' }}>
             <a href="/about" style={{ color: 'white', textDecoration: 'none', fontSize: '16px', transition: 'color 0.3s' }}>About</a>
             <a href="/services" style={{ color: 'white', textDecoration: 'none', fontSize: '16px', transition: 'color 0.3s' }}>Services</a>
             <a href="/help" style={{ color: 'white', textDecoration: 'none', fontSize: '16px', transition: 'color 0.3s' }}>Help</a>
             <a href="/terms" style={{ color: 'white', textDecoration: 'none', fontSize: '16px', transition: 'color 0.3s' }}>Terms</a>
+            {isAdmin && (
+              <Button
+                onClick={() => navigate("/admin")}
+                style={{
+                  backgroundColor: '#e0e1dd',
+                  color: '#1b263b',
+                  padding: '8px 16px',
+                  fontWeight: '600',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '8px'
+                }}
+              >
+                <Shield size={16} />
+                Admin
+              </Button>
+            )}
           </div>
         </div>
       </nav>

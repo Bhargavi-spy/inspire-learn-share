@@ -308,7 +308,7 @@ export type Database = {
         | "Storytelling"
         | "Cooking"
         | "Gardening"
-      user_role: "school" | "senior" | "student"
+      user_role: "school" | "senior" | "student" | "admin"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -447,7 +447,7 @@ export const Constants = {
         "Cooking",
         "Gardening",
       ],
-      user_role: ["school", "senior", "student"],
+      user_role: ["school", "senior", "student", "admin"],
     },
   },
 } as const

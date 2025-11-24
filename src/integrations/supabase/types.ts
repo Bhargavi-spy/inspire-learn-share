@@ -51,6 +51,13 @@ export type Database = {
             referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "invitation_responses_senior_id_fkey"
+            columns: ["senior_id"]
+            isOneToOne: false
+            referencedRelation: "profiles_with_roles"
+            referencedColumns: ["id"]
+          },
         ]
       }
       invitations: {
@@ -84,6 +91,13 @@ export type Database = {
             columns: ["school_id"]
             isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "invitations_school_id_fkey"
+            columns: ["school_id"]
+            isOneToOne: false
+            referencedRelation: "profiles_with_roles"
             referencedColumns: ["id"]
           },
         ]
@@ -127,6 +141,13 @@ export type Database = {
             referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "live_sessions_senior_id_fkey"
+            columns: ["senior_id"]
+            isOneToOne: false
+            referencedRelation: "profiles_with_roles"
+            referencedColumns: ["id"]
+          },
         ]
       }
       profiles: {
@@ -141,7 +162,6 @@ export type Database = {
           interests: Database["public"]["Enums"]["senior_interest"][] | null
           mobile_number: string
           profile_image: string | null
-          role: Database["public"]["Enums"]["user_role"]
           school_email: string | null
           school_name: string | null
           theme_preference: string | null
@@ -158,7 +178,6 @@ export type Database = {
           interests?: Database["public"]["Enums"]["senior_interest"][] | null
           mobile_number: string
           profile_image?: string | null
-          role: Database["public"]["Enums"]["user_role"]
           school_email?: string | null
           school_name?: string | null
           theme_preference?: string | null
@@ -175,7 +194,6 @@ export type Database = {
           interests?: Database["public"]["Enums"]["senior_interest"][] | null
           mobile_number?: string
           profile_image?: string | null
-          role?: Database["public"]["Enums"]["user_role"]
           school_email?: string | null
           school_name?: string | null
           theme_preference?: string | null
@@ -259,6 +277,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "video_likes_student_id_fkey"
+            columns: ["student_id"]
+            isOneToOne: false
+            referencedRelation: "profiles_with_roles"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "video_likes_video_id_fkey"
             columns: ["video_id"]
             isOneToOne: false
@@ -309,11 +334,37 @@ export type Database = {
             referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "videos_senior_id_fkey"
+            columns: ["senior_id"]
+            isOneToOne: false
+            referencedRelation: "profiles_with_roles"
+            referencedColumns: ["id"]
+          },
         ]
       }
     }
     Views: {
-      [_ in never]: never
+      profiles_with_roles: {
+        Row: {
+          age: number | null
+          coins: number | null
+          created_at: string | null
+          description: string | null
+          email: string | null
+          full_name: string | null
+          id: string | null
+          interests: Database["public"]["Enums"]["senior_interest"][] | null
+          mobile_number: string | null
+          profile_image: string | null
+          role: Database["public"]["Enums"]["user_role"] | null
+          school_email: string | null
+          school_name: string | null
+          theme_preference: string | null
+          updated_at: string | null
+        }
+        Relationships: []
+      }
     }
     Functions: {
       has_role: {

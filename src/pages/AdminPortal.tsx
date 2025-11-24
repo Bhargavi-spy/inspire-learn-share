@@ -36,8 +36,10 @@ interface Profile {
   id: string;
   full_name: string;
   email: string;
-  role: string;
   created_at: string;
+  user_roles?: {
+    role: string;
+  }[];
 }
 
 const AdminPortal = () => {
@@ -138,12 +140,25 @@ const AdminPortal = () => {
       // Load profiles
       const { data: profilesData } = await supabase
         .from("profiles")
-        .select("*")
+        .select("id, full_name, email, created_at")
         .order("created_at", { ascending: false });
+
+      // Fetch user roles separately
+      const profileIds = profilesData?.map(p => p.id) || [];
+      const { data: rolesData } = await supabase
+        .from("user_roles")
+        .select("user_id, role")
+        .in("user_id", profileIds);
+
+      // Merge profiles with roles
+      const profilesWithRoles = profilesData?.map(profile => ({
+        ...profile,
+        user_roles: rolesData?.filter(r => r.user_id === profile.id).map(r => ({ role: r.role })) || [],
+      })) || [];
 
       setSessions(sessionsWithProfiles);
       setVideos(videosWithProfiles);
-      setProfiles(profilesData || []);
+      setProfiles(profilesWithRoles);
 
       // Calculate stats
       const today = new Date();
@@ -376,7 +391,9 @@ const AdminPortal = () => {
                       <TableRow key={profile.id}>
                         <TableCell>{profile.full_name}</TableCell>
                         <TableCell>{profile.email}</TableCell>
-                        <TableCell className="capitalize">{profile.role}</TableCell>
+                        <TableCell className="capitalize">
+                          {profile.user_roles?.[0]?.role || 'No role'}
+                        </TableCell>
                         <TableCell>{formatDate(profile.created_at)}</TableCell>
                       </TableRow>
                     ))}

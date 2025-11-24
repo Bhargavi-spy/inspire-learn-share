@@ -108,13 +108,13 @@ export default function Auth() {
       if (authError) throw authError;
 
       if (authData.user) {
+        // Insert profile (without role - roles are stored separately)
         const { error: profileError } = await supabase.from("profiles").insert({
           id: authData.user.id,
           full_name: validatedData.fullName,
           age: validatedData.age,
           mobile_number: validatedData.mobileNumber,
           email: validatedData.email,
-          role: validatedData.role,
           interests: validatedData.interests as any || [],
           school_name: validatedData.schoolName || null,
           school_email: validatedData.schoolEmail || null,
@@ -124,6 +124,7 @@ export default function Auth() {
 
         if (profileError) throw profileError;
 
+        // Note: user_roles table is automatically populated by the sync_user_role trigger
         toast.success("Account created successfully!");
         navigate(role === "school" ? "/school" : role === "senior" ? "/senior" : "/student");
       }
@@ -154,15 +155,16 @@ export default function Auth() {
       if (authError) throw authError;
 
       if (authData.user) {
-        const { data: profile } = await supabase
-          .from("profiles")
+        // Fetch role from user_roles table (not from profiles)
+        const { data: userRole } = await supabase
+          .from("user_roles")
           .select("role")
-          .eq("id", authData.user.id)
+          .eq("user_id", authData.user.id)
           .single();
 
-        if (profile) {
+        if (userRole) {
           toast.success("Signed in successfully!");
-          navigate(profile.role === "school" ? "/school" : profile.role === "senior" ? "/senior" : "/student");
+          navigate(userRole.role === "school" ? "/school" : userRole.role === "senior" ? "/senior" : "/student");
         }
       }
     } catch (error: any) {

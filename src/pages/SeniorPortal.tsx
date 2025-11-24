@@ -125,7 +125,15 @@ export default function SeniorPortal() {
       .eq("id", user.id)
       .single();
 
-    if (!profileData || profileData.role !== "senior") {
+    // Check role from user_roles table (not from profiles)
+    const { data: userRole } = await supabase
+      .from("user_roles")
+      .select("role")
+      .eq("user_id", user.id)
+      .eq("role", "senior")
+      .single();
+
+    if (!profileData || !userRole) {
       toast.error("Unauthorized access");
       navigate("/");
       return;

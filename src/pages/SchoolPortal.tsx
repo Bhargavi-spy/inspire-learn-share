@@ -50,7 +50,15 @@ export default function SchoolPortal() {
       .eq("id", user.id)
       .single();
 
-    if (!profileData || profileData.role !== "school") {
+    // Check role from user_roles table (not from profiles)
+    const { data: userRole } = await supabase
+      .from("user_roles")
+      .select("role")
+      .eq("user_id", user.id)
+      .eq("role", "school")
+      .single();
+
+    if (!profileData || !userRole) {
       toast.error("Unauthorized access");
       navigate("/");
       return;
